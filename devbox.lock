@@ -1,6 +1,70 @@
 {
   "lockfile_version": "1",
   "packages": {
+    "awscli2@2.31.11": {
+      "last_modified": "2025-10-10T13:35:32Z",
+      "resolved": "github:NixOS/nixpkgs/870493f9a8cb0b074ae5b411b2f232015db19a65#awscli2",
+      "source": "devbox-search",
+      "version": "2.31.11",
+      "systems": {
+        "aarch64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/s3zpxj9jghslnb8gj8wc92xk63zibp15-awscli2-2.31.11",
+              "default": true
+            },
+            {
+              "name": "dist",
+              "path": "/nix/store/9ch11wlbdmi418p4f2rmds5ds5jfz0d5-awscli2-2.31.11-dist"
+            }
+          ],
+          "store_path": "/nix/store/s3zpxj9jghslnb8gj8wc92xk63zibp15-awscli2-2.31.11"
+        },
+        "aarch64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/3mb3aariwhxay0yhwg8f4d8y7nfmm607-awscli2-2.31.11",
+              "default": true
+            },
+            {
+              "name": "dist",
+              "path": "/nix/store/y3y7lyhc6wwbyqddrirp1jzha36j70wr-awscli2-2.31.11-dist"
+            }
+          ],
+          "store_path": "/nix/store/3mb3aariwhxay0yhwg8f4d8y7nfmm607-awscli2-2.31.11"
+        },
+        "x86_64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/xnxpskvyhn3yd6bp3l6m615v1qxqfhsf-awscli2-2.31.11",
+              "default": true
+            },
+            {
+              "name": "dist",
+              "path": "/nix/store/d5v64a51fy097822p9971xkgxyffaa34-awscli2-2.31.11-dist"
+            }
+          ],
+          "store_path": "/nix/store/xnxpskvyhn3yd6bp3l6m615v1qxqfhsf-awscli2-2.31.11"
+        },
+        "x86_64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/6gm80073h4id6knkh3j23jm7qhr029lb-awscli2-2.31.11",
+              "default": true
+            },
+            {
+              "name": "dist",
+              "path": "/nix/store/z56vymjzsn57hjldwigfpjmxc5mrv07i-awscli2-2.31.11-dist"
+            }
+          ],
+          "store_path": "/nix/store/6gm80073h4id6knkh3j23jm7qhr029lb-awscli2-2.31.11"
+        }
+      }
+    },
     "github:NixOS/nixpkgs/nixpkgs-unstable": {
       "last_modified": "2025-10-05T02:43:53Z",
       "resolved": "github:NixOS/nixpkgs/d7f52a7a640bc54c7bb414cca603835bf8dd4b10?lastModified=1759632233&narHash=sha256-krgZxGAIIIKFJS%2BUB0l8do3sYUDWJc75M72tepmVMzE%3D"
@@ -50,6 +114,54 @@
             }
           ],
           "store_path": "/nix/store/vhwiimxi8jls34660ha4hfrxxfrf2lfc-pulumi-3.192.0"
+        }
+      }
+    },
+    "pulumiPackages.pulumi-python@3.192.0": {
+      "last_modified": "2025-10-07T08:41:47Z",
+      "resolved": "github:NixOS/nixpkgs/bce5fe2bb998488d8e7e7856315f90496723793c#pulumiPackages.pulumi-python",
+      "source": "devbox-search",
+      "version": "3.192.0",
+      "systems": {
+        "aarch64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/6azvf09way79240vhz4h3m2c338l1z2r-pulumi-python-3.192.0",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/6azvf09way79240vhz4h3m2c338l1z2r-pulumi-python-3.192.0"
+        },
+        "aarch64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/c0q9bib01n8bp2qbl820wwgpqkk458sb-pulumi-python-3.192.0",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/c0q9bib01n8bp2qbl820wwgpqkk458sb-pulumi-python-3.192.0"
+        },
+        "x86_64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/88lfdxwxffkvr7l9j9a2nkmx37mq3rbd-pulumi-python-3.192.0",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/88lfdxwxffkvr7l9j9a2nkmx37mq3rbd-pulumi-python-3.192.0"
+        },
+        "x86_64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/zp8kd4a2caplg8ngkjcbd9vmsbbl5f6d-pulumi-python-3.192.0",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/zp8kd4a2caplg8ngkjcbd9vmsbbl5f6d-pulumi-python-3.192.0"
         }
       }
     },

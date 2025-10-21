@@ -1,0 +1,33 @@
+{
+  "config": {
+    "connector.class": "OracleXStreamSource",
+    "name": "OracleXStreamSourceConnector_0",
+    "csfle.enabled": "false",
+    "schema.context.name": "default",
+    "output.key.format": "AVRO",
+    "output.data.format": "AVRO",
+    "snapshot.mode": "initial",
+    "schema.history.internal.skip.unparseable.ddl": "false",
+    "snapshot.database.errors.max.retries": "0",
+    "tombstones.on.delete": "true",
+    "skipped.operations": "t",
+    "schema.name.adjustment.mode": "none",
+    "field.name.adjustment.mode": "none",
+    "heartbeat.interval.ms": "0",
+    "database.os.timezone": "UTC",
+    "unavailable.value.placeholder": "__cflt_unavailable_value",
+    "lob.oversize.threshold": "-1",
+    "lob.oversize.handling.mode": "fail",
+    "skip.value.placeholder": "__cflt_skipped_value",
+    "decimal.handling.mode": "precise",
+    "binary.handling.mode": "bytes",
+    "time.precision.mode": "adaptive",
+    "tasks.max": "1",
+    "value.converter.decimal.format": "BASE64",
+    "value.converter.reference.subject.name.strategy": "DefaultReferenceSubjectNameStrategy",
+    "errors.tolerance": "none",
+    "value.converter.value.subject.name.strategy": "TopicNameStrategy",
+    "key.converter.key.subject.name.strategy": "TopicNameStrategy",
+    "auto.restart.on.user.error": "true"
+  }
+}

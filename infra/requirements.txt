@@ -1,0 +1,5 @@
+pulumi>=3.192.0
+pulumi-aws>=6.0.0
+pulumi-confluentcloud>=2.42.0
+pulumi-databricks>=1.76.0
+pulumi-command>=1.1.3

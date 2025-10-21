@@ -1,8 +1,13 @@
 {
     "$schema": "https://raw.githubusercontent.com/jetify-com/devbox/0.16.0/.schema/devbox.schema.json",
-    "packages": ["python@3.13", "pulumi@3.192.0"],
+    "packages": [
+        "python@3.13",
+        "pulumi@3.192.0",
+        "pulumiPackages.pulumi-python@3.192.0",
+        "awscli2@2.31.11"
+    ],
     "shell": {
-        "init_hook": [". .profile"],
+        "init_hook": ["source .profile"],
         "scripts": {
             "test": ["echo \"Error: no test specified\" && exit 1"]
         }

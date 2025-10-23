@@ -3,9 +3,9 @@ runtime: python
 description: Pulumi IaC for Confluent Cloud RDS Oracle DBX Demo
 config:
     # Prefix for all resource names
-    resourcePrefix: sanliker
+    resourcePrefix: demo
     # Default tags to apply to all resources
-    defaultTags: '{"owner_email":"sanliker@confluent.io","keep_until":"2025/10/24"}'
+    defaultTags: '{"owner_email":"example@example.com","keep_until":"2025/10/24"}'
     region: "eu-central-1"
     vpcId: "vpc-eeb49785" # set id to deploy into existing VPC, otherwise create a new one
     # RDS properties
@@ -16,3 +16,5 @@ config:
     rds:cfltUserName: "cfltuser"
     rds:cfltUserPassword: "tobedefined"
     rds:xoutServerName: "xout"
+    dbx:host: "https://xxxxxxx.cloud.databricks.com/"
+    dbx:storageCredsExternalId: ""

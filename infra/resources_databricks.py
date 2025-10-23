@@ -64,16 +64,15 @@ def create_catalog(rsm: resources.ResourcesManager):
     rsm.dbx_catalog = dbx_catalog
 
 
-def create_external_storage(rsm: resources.ResourcesManager):
+def create_storage_credentials(rsm: resources.ResourcesManager):
     assert rsm.dbx_service_principal, "Databricks Service Principal is not defined"
-    assert rsm.aws_databricks_access_role, "AWS Databricks Access Role is not defined"
-    assert rsm.aws_tableflow_bucket, "AWS Tableflow S3 Bucket is not defined"
 
+    dbx_assume_role_arn = rsm.currentStack.get_output(rsm.dbx_access_role_name)
     dbx_storage_creds = databricks.StorageCredential(
         f"{rsm.resource_prefix}-dbx-storage-creds",
         opts=pulumi.ResourceOptions(protect=rsm.protect_resources),
         aws_iam_role={
-            "role_arn": rsm.aws_databricks_access_role.arn,
+            "role_arn": dbx_assume_role_arn.apply(lambda arn: str(arn)),
         },
         comment=f"{rsm.resource_prefix} CDC demo",
     )
@@ -92,11 +91,20 @@ def create_external_storage(rsm: resources.ResourcesManager):
         ],
     )
 
+    rsm.dbx_storage_credentials = dbx_storage_creds
+
+
+def create_external_storage(rsm: resources.ResourcesManager):
+    assert rsm.dbx_service_principal, "Databricks Service Principal is not defined"
+    assert rsm.aws_databricks_access_role, "AWS Databricks Access Role is not defined"
+    assert rsm.aws_tableflow_bucket, "AWS Tableflow S3 Bucket is not defined"
+    assert rsm.dbx_storage_credentials, "Databricks Storage Credentials is not defined"
+
     dbx_external_location = databricks.ExternalLocation(
         f"{rsm.resource_prefix}-dbx-external-location",
         opts=pulumi.ResourceOptions(protect=rsm.protect_resources),
         url=rsm.aws_tableflow_bucket.bucket.apply(lambda bucket: f"s3://{bucket}/"),
-        credential_name=dbx_storage_creds.name,
+        credential_name=rsm.dbx_storage_credentials.name,
         comment=f"{rsm.resource_prefix} external location for cdc demo",
     )
 

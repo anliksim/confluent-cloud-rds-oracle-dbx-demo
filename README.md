@@ -75,6 +75,12 @@ Then set the env variable to point pulumi to your passphrase file
 export PULUMI_CONFIG_PASSPHRASE_FILE="pass.local"
 ```
 
+Allow the execution of sh files in scripts/
+```sh
+chmod +x scripts/*
+```
+
+
 Next, follow the prerequisites for the aws cli v2 IAM: https://docs.aws.amazon.com/cli/latest/userguide/getting-started-prereqs.html#getting-started-prereqs-iam
 
 Configure the AWS cli locally
@@ -111,11 +117,18 @@ Configure RDS Oracle by logging in the database and executing the statments in `
 
 The setup in this demo has been tested. If you are running into issues or using a different database then the one provisioned by this demo, use the readiness script here: https://docs.confluent.io/kafka-connectors/oracle-cdc/current/prereqs-validation.html#validate-start-up-configuration-and-prerequisite-completion
 
-
 After configuring RDS, run pulumi again. The second run will set up Confluent Cloud and Databricks.
 ```sh
 pulumi up
 ```
+
+The setup will fail to create the Databricks external location as it's not run using an admin accounts (issue described here https://community.databricks.com/t5/get-started-discussions/terraform-databricks-storage-credential-has-wrong-external-id/td-p/54153). For the automation to work, go to the Databricks UI, find the external id of the role used and updated `dbx:storageCredsExternalId` in `Pulumi.yaml` with it.
+
+Once done, run pulumi again. This time the external location creation should succeed.
+```sh
+pulumi up
+```
+
 
 ## Destroy
 

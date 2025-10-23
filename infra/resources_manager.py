@@ -12,6 +12,7 @@ class ResourcesManager:
 
     def __init__(self):
         cfg = pulumi.Config()
+        self.currentStack = pulumi.StackReference(pulumi.get_stack())
         self.resource_prefix: str = cfg.get("resourcePrefix") or "demo"
         self.protect_resources: bool = cfg.get_bool("protectResources") or False
         self.default_tags: dict[str, str] = ast.literal_eval(
@@ -44,15 +45,21 @@ class ResourcesManager:
         self.cflt_kafka_cluster: confluentcloud.KafkaCluster
         self.cflt_xstream_service_account: confluentcloud.ServiceAccount
         self.cflt_xstream_service_account_env_admin_role: confluentcloud.RoleBinding
+        self.cflt_xstream_service_account_kafka_api_key: confluentcloud.ApiKey
         self.cflt_xstream_service_account_tableflow_api_key: confluentcloud.ApiKey
         self.cflt_xstream_connector: confluentcloud.Connector
         self.cflt_s3_provider_integration: confluentcloud.ProviderIntegration
         # DBX resources
-        self.dbx_host: str = cfg.get("dbx:host") or ""
+        dbxConfig = pulumi.Config("dbx")
+        self.dbx_host: str = dbxConfig.get("host") or ""
+        self.dbx_storage_credentials_external_id: str = (
+            dbxConfig.get("storageCredsExternalId") or ""
+        )
         self.dbx_access_role_name: str = f"{self.resource_prefix}-dbx-access-role"
         self.dbx_catalog: databricks.Catalog
         self.dbx_service_principal: databricks.ServicePrincipal
         self.dbx_service_principal_secret: databricks.ServicePrincipalSecret
+        self.dbx_storage_credentials: databricks.StorageCredential
         self.dbx_external_location: databricks.ExternalLocation
 
     def tableflow_access_role_exists(self) -> bool:

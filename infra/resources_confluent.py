@@ -40,10 +40,10 @@ def create_standard_cluster(rsm: resources.ResourcesManager):
 def create_provider_integration(rsm: resources.ResourcesManager):
     assert rsm.cflt_environment, "Confluent Environment not defined"
     assert rsm.cflt_kafka_cluster, "Confluent Kafka Cluster is not defined"
-    assert rsm.aws_tableflow_access_role, "AWS Tableflow Access Role is not defined"
 
-    currentStack = pulumi.StackReference(pulumi.get_stack())
-    tableflow_assume_role_arn = currentStack.get_output("tableflow_role_arn")
+    tableflow_assume_role_arn = rsm.currentStack.get_output(
+        rsm.tableflow_access_role_name
+    )
     tableflow_s3_provider_integration = confluentcloud.ProviderIntegration(
         f"{rsm.resource_prefix}-tableflow-s3-integration",
         opts=pulumi.ResourceOptions(protect=rsm.protect_resources),
@@ -60,6 +60,7 @@ def create_provider_integration(rsm: resources.ResourcesManager):
 
 def create_service_account(rsm: resources.ResourcesManager):
     assert rsm.cflt_environment, "Confluent Environment not defined"
+    assert rsm.cflt_kafka_cluster, "Confluent Kafka Cluster not defined"
 
     xstream_service_account_name = f"{rsm.resource_prefix}-xstream-sa"
     xstream_service_account = confluentcloud.ServiceAccount(
@@ -76,6 +77,24 @@ def create_service_account(rsm: resources.ResourcesManager):
         principal=xstream_service_account.id.apply(lambda id: f"User:{id}"),
         role_name="EnvironmentAdmin",  # EnvironmentAdmin for demo, too permissive for production
         crn_pattern=rsm.cflt_environment.resource_name,
+    )
+
+    kafka_api_key = confluentcloud.ApiKey(
+        f"{xstream_service_account_name}-kafka-api-key",
+        opts=pulumi.ResourceOptions(protect=rsm.protect_resources),
+        display_name=f"{xstream_service_account_name}-kafka-api-key",
+        description=f"Kafka API Key that is owned by '{xstream_service_account_name}' service account",
+        owner=confluentcloud.ApiKeyOwnerArgs(
+            id=xstream_service_account.id,
+            api_version=xstream_service_account.api_version,
+            kind=xstream_service_account.kind,
+        ),
+        managed_resource={
+            "id": rsm.cflt_kafka_cluster.id,
+            "api_version": rsm.cflt_kafka_cluster.api_version,
+            "kind": rsm.cflt_kafka_cluster.kind,
+            "environment": {"id": rsm.cflt_environment.id},
+        },
     )
 
     xstream_service_account_tableflow_api_key = confluentcloud.ApiKey(
@@ -99,16 +118,27 @@ def create_service_account(rsm: resources.ResourcesManager):
     rsm.cflt_xstream_service_account_env_admin_role = (
         xstream_service_account_env_admin_role
     )
+    rsm.cflt_xstream_service_account_kafka_api_key = kafka_api_key
     rsm.cflt_xstream_service_account_tableflow_api_key = (
         xstream_service_account_tableflow_api_key
     )
 
 
-def create_compacted_topic(rsm: resources.ResourcesManager, topic_name: str):
+def create_tableflow_topic(rsm: resources.ResourcesManager, topic_name: str):
     assert rsm.cflt_environment, "Confluent Environment not defined"
     assert rsm.cflt_kafka_cluster, "Confluent Kafka Cluster not defined"
+    assert rsm.cflt_xstream_service_account_kafka_api_key, (
+        "Confluent Kafka API Key not defined"
+    )
+    assert rsm.cflt_xstream_service_account_tableflow_api_key, (
+        "Confluent Tableflow API Key not defined"
+    )
+    assert rsm.aws_tableflow_bucket, "AWS Tableflow Bucket not defined"
+    assert rsm.cflt_s3_provider_integration, (
+        "Confluent S3 Provider Integration not defined"
+    )
 
-    _ = confluentcloud.KafkaTopic(
+    topic = confluentcloud.KafkaTopic(
         f"{rsm.resource_prefix}-{topic_name}-topic",
         opts=pulumi.ResourceOptions(protect=rsm.protect_resources),
         topic_name=topic_name,
@@ -116,20 +146,19 @@ def create_compacted_topic(rsm: resources.ResourcesManager, topic_name: str):
         config={
             "cleanup.policy": "compact",
         },
-    )
-
-
-def create_tableflow_topic(rsm: resources.ResourcesManager, topic_name: str):
-    assert rsm.cflt_environment, "Confluent Environment not defined"
-    assert rsm.cflt_kafka_cluster, "Confluent Kafka Cluster not defined"
-    assert rsm.aws_tableflow_bucket, "AWS Tableflow Bucket not defined"
-    assert rsm.cflt_s3_provider_integration, (
-        "Confluent S3 Provider Integration not defined"
+        rest_endpoint=rsm.cflt_kafka_cluster.rest_endpoint,
+        kafka_cluster={
+            "id": rsm.cflt_kafka_cluster.id,
+        },
+        credentials={
+            "key": rsm.cflt_xstream_service_account_kafka_api_key.id,
+            "secret": rsm.cflt_xstream_service_account_kafka_api_key.secret,
+        },
     )
 
     _ = confluentcloud.TableflowTopic(
         f"{rsm.resource_prefix}-{topic_name}-tableflow-topic",
-        opts=pulumi.ResourceOptions(protect=rsm.protect_resources),
+        opts=pulumi.ResourceOptions(protect=rsm.protect_resources, depends_on=[topic]),
         display_name=topic_name,
         table_formats=[
             "ICEBERG",
@@ -248,17 +277,17 @@ def create_unity_integration(rsm: resources.ResourcesManager):
     #     opts=pulumi.ResourceOptions(protect=protect_dbx),
     #     display_name=f"{resource_prefix}-unity-catalog-integration",
     # )
-    currentStack = pulumi.StackReference(pulumi.get_stack())
-
     unity_integration = command.local.Command(
         f"{rsm.resource_prefix}-create-unity-integration",
         opts=pulumi.ResourceOptions(protect=rsm.protect_resources),
-        create="./unity/create_unity_integration.sh",
-        update="./unity/update_unity_integration.sh",
-        delete="./unity/delete_unity_integration.sh",
+        create="./scripts/create_unity_integration.sh",
+        update="./scripts/update_unity_integration.sh",
+        delete="./scripts/delete_unity_integration.sh",
         environment={
             # TODO parse id from output json
-            "INTEGRATION_ID": currentStack.get_output("unity_integration_catalog_id"),
+            "INTEGRATION_ID": rsm.currentStack.get_output(
+                "unity_integration_catalog_id"
+            ),
             "KAFKA_ID": rsm.cflt_kafka_cluster.id,
             "ENV_ID": rsm.cflt_environment.id,
             "TABLEFLOW_KEY": rsm.cflt_xstream_service_account_tableflow_api_key.id,
@@ -302,7 +331,7 @@ def create_unity_integration(rsm: resources.ResourcesManager):
     unity_integration_catalog_id = unity_integration.stdout.apply(
         lambda output: str(json.loads(output)["id"])
         if "id" in json.loads(output)
-        else currentStack.get_output("unity_integration_catalog_id")
+        else rsm.currentStack.get_output("unity_integration_catalog_id")
     )
 
     pulumi.export("unity_integration_catalog_id", unity_integration_catalog_id)

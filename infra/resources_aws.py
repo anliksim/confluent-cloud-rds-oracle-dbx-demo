@@ -246,6 +246,7 @@ def create_deny_all_assume_role(
             "purpose": purpose,
         },
     )
+    pulumi.export(resource_name, role.arn)
 
     return role
 
@@ -338,15 +339,25 @@ def update_tableflow_access_role(rsm: resources.ResourcesManager):
             "purpose": "IAM role for Confluent Cloud Tableflow",
         },
     )
-
+    pulumi.export(rsm.tableflow_access_role_name, tableflow_assume_role.arn)
     rsm.aws_tableflow_access_role = tableflow_assume_role
+
+    _ = aws.iam.RolePolicyAttachment(
+        f"{rsm.tableflow_access_role_name}-policy-attach",
+        opts=pulumi.ResourceOptions(protect=rsm.protect_resources),
+        role=tableflow_assume_role.name,
+        policy_arn=rsm.aws_tableflow_access_policy.arn,
+    )
 
 
 def update_dbx_access_role(rsm: resources.ResourcesManager):
     """Update the AWS Databricks Access Role with the latest IAM policy."""
 
-    assert rsm.aws_databricks_access_role, "AWS Databricks Access Role is not defined"
     assert rsm.aws_tableflow_access_policy, "AWS Tableflow IAM Policy is not defined"
+    assert rsm.dbx_storage_credentials, "Databricks Storage Credentials is not defined"
+    assert rsm.dbx_storage_credentials_external_id, (
+        "External ID for Databricks is not defined in pulumi config!"
+    )
 
     aws_caller_id = aws.get_caller_identity()
 
@@ -355,6 +366,45 @@ def update_dbx_access_role(rsm: resources.ResourcesManager):
         opts=pulumi.ResourceOptions(protect=rsm.protect_resources),
         # apply on multiple including id
         name=rsm.dbx_access_role_name,
+        # Unfotunately the below does not seem to be possible unless using an admin account setup instead of workspace
+        # see https://community.databricks.com/t5/get-started-discussions/terraform-databricks-storage-credential-has-wrong-external-id/td-p/54153
+        # assume_role_policy=rsm.dbx_storage_credentials.storage_credential_id.apply(
+        #     lambda externalId: json.dumps(
+        #         {
+        #             "Version": "2012-10-17",
+        #             "Statement": [
+        #                 {
+        #                     "Effect": "Allow",
+        #                     "Principal": {
+        #                         "AWS": [
+        #                             f"arn:aws:iam::{aws_caller_id.account_id}:role/{rsm.dbx_access_role_name}",
+        #                             "arn:aws:iam::414351767826:role/unity-catalog-prod-UCMasterRole-14S5ZJVKOTYTL",
+        #                         ],
+        #                     },
+        #                     "Action": "sts:AssumeRole",
+        #                     "Condition": {
+        #                         "StringEquals": {
+        #                             "sts:ExternalId": externalId,
+        #                         }
+        #                     },
+        #                 },
+        #                 {
+        #                     "Sid": "ExplicitSelfRoleAssumption",
+        #                     "Effect": "Allow",
+        #                     "Principal": {
+        #                         "AWS": f"arn:aws:iam::{aws_caller_id.account_id}:root"
+        #                     },
+        #                     "Action": "sts:AssumeRole",
+        #                     "Condition": {
+        #                         "ArnEquals": {
+        #                             "aws:PrincipalArn": f"arn:aws:iam::{aws_caller_id.account_id}:role/{rsm.dbx_access_role_name}"
+        #                         }
+        #                     },
+        #                 },
+        #             ],
+        #         }
+        #     ),
+        # ),
         assume_role_policy=json.dumps(
             {
                 "Version": "2012-10-17",
@@ -363,27 +413,14 @@ def update_dbx_access_role(rsm: resources.ResourcesManager):
                         "Effect": "Allow",
                         "Principal": {
                             "AWS": [
-                                f"arn:aws:iam::{aws_caller_id.account_id}:role/{rsm.resource_prefix}-dbx-assume-role",
                                 "arn:aws:iam::414351767826:role/unity-catalog-prod-UCMasterRole-14S5ZJVKOTYTL",
+                                f"arn:aws:iam::{aws_caller_id.account_id}:role/{rsm.dbx_access_role_name}",
                             ],
                         },
                         "Action": "sts:AssumeRole",
                         "Condition": {
                             "StringEquals": {
-                                "sts:ExternalId": "e5ace8fc-2742-4c60-9800-0215caa56155",
-                            }
-                        },
-                    },
-                    {
-                        "Sid": "ExplicitSelfRoleAssumption",
-                        "Effect": "Allow",
-                        "Principal": {
-                            "AWS": f"arn:aws:iam::{aws_caller_id.account_id}:root"
-                        },
-                        "Action": "sts:AssumeRole",
-                        "Condition": {
-                            "ArnEquals": {
-                                "aws:PrincipalArn": f"arn:aws:iam::{aws_caller_id.account_id}:role/{rsm.resource_prefix}-dbx-assume-role"
+                                "sts:ExternalId": rsm.dbx_storage_credentials_external_id,
                             }
                         },
                     },
@@ -395,9 +432,11 @@ def update_dbx_access_role(rsm: resources.ResourcesManager):
             "purpose": "IAM role for DBX Unity Catalog to access S3 storage",
         },
     )
+    pulumi.export(rsm.dbx_access_role_name, dbx_assume_role.arn)
+    rsm.aws_databricks_access_role = dbx_assume_role
 
     _ = aws.iam.RolePolicyAttachment(
-        f"{rsm.resource_prefix}-dbx-role-policy-attach",
+        f"{rsm.dbx_access_role_name}-policy-attach",
         opts=pulumi.ResourceOptions(protect=rsm.protect_resources),
         role=dbx_assume_role.name,
         policy_arn=rsm.aws_tableflow_access_policy.arn,

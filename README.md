@@ -104,7 +104,7 @@ Run pulumi. The first one will create resources in AWS, including RDS Oracle.
 pulumi up
 ```
 
-Configure RDS Oracle by logging in the database and executing the statments in `sql/setup_rds.sql` (e.g. using SQL Developer from Oracle). The RDS endpoint is provided by the pulumi output or can be copied from the AWS console. The password for the admin user is stored in the AWS Secrets Manager.
+Configure RDS Oracle by logging in the database and executing the statments in `sql/schema.sql` followed by `sql/xstream_setup.sql` (e.g. using SQL Developer from Oracle). The RDS endpoint is provided by the pulumi output (run `pulumi stack` to see the output) or can be copied from the AWS console. The password for the admin user is stored in the AWS Secrets Manager.
 
 The setup in this demo has been tested. If you are running into issues or using a different database then the one provisioned by this demo, use the readiness script here: https://docs.confluent.io/kafka-connectors/oracle-cdc/current/prereqs-validation.html#validate-start-up-configuration-and-prerequisite-completion
 

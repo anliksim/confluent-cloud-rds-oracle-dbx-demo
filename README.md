@@ -8,7 +8,7 @@ This demo shows how to stream data from Amazon RDS for Oracle to Databricks usin
 - To Target: [Databricks](https://docs.databricks.com/aws/en/)
 - Using: [Confluent Cloud](https://www.confluent.io/confluent-cloud/).
 
-Stay tuned.
+For any questions or feedback, feel free to reach out on [LinkedIn](https://www.linkedin.com/in/anlikers/).
 
 ## Setup
 

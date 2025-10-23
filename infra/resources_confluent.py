@@ -284,7 +284,6 @@ def create_unity_integration(rsm: resources.ResourcesManager):
         update="./scripts/update_unity_integration.sh",
         delete="./scripts/delete_unity_integration.sh",
         environment={
-            # TODO parse id from output json
             "INTEGRATION_ID": rsm.currentStack.get_output(
                 "unity_integration_catalog_id"
             ),

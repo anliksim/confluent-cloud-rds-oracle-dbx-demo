@@ -129,6 +129,11 @@ Once done, run pulumi again. This time the external location creation should suc
 pulumi up
 ```
 
+To generate some test data, use the scripts `sql/proc_create.sql` and `sql/proc_create_update.sql`. After creation the procedure, run it for as many seconds as needed, e.g.:
+```sh
+EXEC generate_trial_data(10);
+```
+
 
 ## Destroy
 

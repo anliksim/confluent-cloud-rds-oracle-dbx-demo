@@ -1,5 +1,6 @@
 # Pulumi
 .pulumi/
+infra/Pulumi.dev.yaml
 
 # Python
 __pycache__/
